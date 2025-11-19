@@ -1,23 +1,61 @@
-HELP.md
-target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+################################################################################
+# JAVA / SPRING BOOT
+################################################################################
 
-### STS ###
+# Compiled class files
+*.class
+
+# Log files
+*.log
+logs/
+*.out
+
+# Spring Boot packages
+*.jar
+*.war
+*.ear
+
+# Spring Boot temp files
+.spring-*
+BOOT-INF/
+META-INF/
+
+################################################################################
+# MAVEN
+################################################################################
+target/
+!.mvn/wrapper/maven-wrapper.jar
+.mvn/timing.properties
+
+################################################################################
+# GRADLE (caso algum colaborador use)
+################################################################################
+.gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+################################################################################
+# IDEs
+################################################################################
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+
+### VS Code ###
+.vscode/
+
+### Eclipse / STS ###
 .apt_generated
 .classpath
 .factorypath
 .project
-.settings
+.settings/
 .springBeans
 .sts4-cache
-
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
 
 ### NetBeans ###
 /nbproject/private/
@@ -25,9 +63,65 @@ target/
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
 
-### VS Code ###
-.vscode/
+################################################################################
+# NODE / REACT (FRONT-END)
+################################################################################
+
+# Node modules
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Env files
+.env
+.env.local
+.env.*.local
+
+################################################################################
+# SYSTEM FILES
+################################################################################
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+*~
+
+################################################################################
+# TEMP FILES / WORKSPACE
+################################################################################
+
+# Swap files
+*.swp
+*.swo
+
+# Temp files
+*.tmp
+*.cache
+.cache/
+tmp/
+temp/
+
+# JetBrains
+out/
+
+################################################################################
+# DOCUMENTAÇÃO AUXILIAR / DEV
+################################################################################
+HELP.md

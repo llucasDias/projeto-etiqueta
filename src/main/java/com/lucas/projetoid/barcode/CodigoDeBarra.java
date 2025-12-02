@@ -12,12 +12,12 @@ import java.nio.file.Path;
  * Todos os dados da etiqueta (op, cliente, pedido, item, qtd, data) são usados.
  * Salva o ZPL em arquivo ou retorna a string ZPL.
  */
+
 @Component
 public class CodigoDeBarra {
 
     /**
      * Gera o ZPL da etiqueta.
-     *
      * @param etq EtiquetaMatrizEntity
      * @return String contendo ZPL
      */
@@ -25,11 +25,11 @@ public class CodigoDeBarra {
 
         int x = 10;          // posição X inicial
         int y = 10;          // posição Y inicial
-        int qrSize = 200;    // tamanho do QRCode
+        int qrSize = 200;    // tamanho do QRCode em dots
 
-        // Conteúdo compacto para QRCode (JSON)
+        // Conteúdo compacto em CSV para leitura em Excel
         String conteudo = String.format(
-                "{\"d\":\"%s\",\"o\":\"%s\",\"c\":\"%s\",\"p\":\"%s\",\"i\":\"%s\",\"q\":\"%s\"}",
+                "%s;%s;%s;%s;%s;%s",
                 etq.getData().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yy")),
                 etq.getOp(),
                 etq.getCliente(),
@@ -38,7 +38,7 @@ public class CodigoDeBarra {
                 etq.getQtd()
         );
 
-        // Texto visual abaixo do QR
+        // Texto visual
         String textoVisual = String.format(
                 "CLIENTE: %s%nOP: %s   ITEM: %s%nPEDIDO: %s%nDATA: %s   QTD: %s",
                 etq.getCliente(),
@@ -51,26 +51,25 @@ public class CodigoDeBarra {
 
         // Monta ZPL
         StringBuilder zpl = new StringBuilder();
-        zpl.append("^XA\n"); // Início etiqueta
+        zpl.append("^XA\n"); // início da etiqueta
 
-        // QRCode
-        zpl.append(String.format("^FO%d,%d^BQN,2,5^FDLA,%s^FS\n", x, y, conteudo));
+        // QR Code à direita
+        zpl.append(String.format("^FO520,%d^BQN,2,5^FDLA,%s^FS\n", y, conteudo));
 
-        // Texto
-        int yText = y + qrSize + 10;
+        // Texto à esquerda
+        int yText = y + 30;  // desce um pouco o bloco visual
         for (String linha : textoVisual.split("\n")) {
-            zpl.append(String.format("^FO%d,%d^A0N,30,30^FD%s^FS\n", x, yText, linha));
+            zpl.append(String.format("^FO10,%d^A0N,30,30^FD%s^FS\n", yText, linha));
             yText += 35;
         }
 
-        zpl.append("^XZ"); // Fim etiqueta
+        zpl.append("^XZ"); // fim da etiqueta
 
         return zpl.toString();
     }
 
     /**
      * Salva a etiqueta em arquivo ZPL
-     *
      * @param etq     EtiquetaMatrizEntity
      * @param caminho Caminho do arquivo (.zpl)
      * @throws IOException

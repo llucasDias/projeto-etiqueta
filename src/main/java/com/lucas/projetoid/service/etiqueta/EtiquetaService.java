@@ -8,11 +8,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.format.DateTimeFormatter;
 
-
 /**
  * Service responsável por:
  * 1) Gerar conteúdo compacto (JSON) para ZPL
- * 2) Gerar conteúdo visual (texto) da etiqueta
+ * 2) Gerar conteúdo visual da etiqueta
  * 3) Atualizar status da etiqueta (gerada)
  * 4) Consultar etiquetas
  */
@@ -25,16 +24,11 @@ public class EtiquetaService {
         this.etiquetaMatrizRepository = etiquetaMatrizRepository;
     }
 
-    /**
-     * Monta conteúdo compacto da etiqueta (JSON) incluindo quantidade
-     */
     public String conteudoCompactado(EtiquetaMatrizEntity etq) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yy");
-        String dataFormatada = etq.getData().format(formatter);
-
         return String.format(
                 "{\"d\":\"%s\",\"o\":\"%s\",\"c\":\"%s\",\"p\":\"%s\",\"i\":\"%s\",\"q\":\"%s\"}",
-                dataFormatada,
+                etq.getData().format(formatter),
                 etq.getOp(),
                 etq.getCliente(),
                 etq.getPedido(),
@@ -43,9 +37,6 @@ public class EtiquetaService {
         );
     }
 
-    /**
-     * Conteúdo visual da etiqueta (texto abaixo do QR/ZPL)
-     */
     public String textoVisual(EtiquetaMatrizEntity etq) {
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yy");
         return String.format(
@@ -59,21 +50,14 @@ public class EtiquetaService {
         );
     }
 
-    /**
-     * Busca etiqueta pelo checkid
-     */
     @Transactional(readOnly = true)
     public EtiquetaMatrizEntity buscar(Integer checkid) {
-        return etiquetaMatrizRepository
-                .findByCheckid(checkid)
+        return etiquetaMatrizRepository.findByCheckid(checkid)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Etiqueta não encontrada: " + checkid
                 ));
     }
 
-    /**
-     * Atualiza status da etiqueta (true = gerada)
-     */
     @Transactional
     public boolean atualizarStatus(Integer checkid) {
         EtiquetaMatrizEntity etq = buscar(checkid);
@@ -83,36 +67,23 @@ public class EtiquetaService {
         return true;
     }
 
-    /**
-     * Verifica se a etiqueta já foi gerada
-     */
     public boolean isEtiquetaGerada(Integer checkid) {
-        EtiquetaMatrizEntity etq = buscar(checkid);
-        return etq.isStatus();
+        return buscar(checkid).isStatus();
     }
 
-    /**
-     * Busca por código da etiqueta
-     */
     public EtiquetaMatrizEntity buscarByCodigo(String codigo) {
-        return etiquetaMatrizRepository
-                .findByCodigoEtiqueta(codigo)
+        return etiquetaMatrizRepository.findByCodigoEtiqueta(codigo)
                 .orElseThrow(() -> new IllegalArgumentException("Etiqueta não encontrada: " + codigo));
     }
 
     /**
-     * Gera arquivo ZPL da etiqueta e atualiza status
+     * Gera arquivo ZPL da etiqueta e marca como gerada
      */
     public void gerarZplEtiqueta(EtiquetaMatrizEntity etq, String caminho) throws Exception {
-        // Verifica se já foi gerada
         if (isEtiquetaGerada(etq.getCheckid())) {
             throw new IllegalStateException("Etiqueta já foi gerada para OP: " + etq.getOp());
         }
-
-        // Salva ZPL
         CodigoDeBarra.salvarZplArquivo(etq, caminho);
-
-        // Marca como gerada
         atualizarStatus(etq.getCheckid());
     }
 }

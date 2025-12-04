@@ -16,64 +16,43 @@ import java.nio.file.Path;
 @Component
 public class CodigoDeBarra {
 
-    /**
-     * Gera o ZPL da etiqueta.
-     * @param etq EtiquetaMatrizEntity
-     * @return String contendo ZPL
-     */
     public static String gerarZebraZpl(EtiquetaMatrizEntity etq) {
 
-        int x = 10;          // posição X inicial
-        int y = 10;          // posição Y inicial
-        int qrSize = 200;    // tamanho do QRCode em dots
+        int width  = 812; // etiqueta 104mm  → ZEBRA REAL
+        int height = 406; // etiqueta 50,8mm → OK Labelary
 
-        // Conteúdo compacto em CSV para leitura em Excel
-        String conteudo = String.format(
-                "%s;%s;%s;%s;%s;%s",
-                etq.getData().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yy")),
-                etq.getOp(),
-                etq.getCliente(),
-                etq.getPedido(),
-                etq.getItem(),
-                etq.getQtd()
+        String codigo = String.format("%s-%s-%s-%s-%s",
+                etq.getOp(), etq.getPedido(), etq.getItem(),
+                etq.getCliente(), etq.getQtd()
         );
 
-        // Texto visual
-        String textoVisual = String.format(
-                "CLIENTE: %s%nOP: %s   ITEM: %s%nPEDIDO: %s%nDATA: %s   QTD: %s",
-                etq.getCliente(),
-                etq.getOp(),
-                etq.getItem(),
-                etq.getPedido(),
-                etq.getData().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yy")),
-                etq.getQtd()
-        );
+        String linha1 = "CLIENTE: " + etq.getCliente();
+        String linha2 = "OP: " + etq.getOp() + "   ITEM: " + etq.getItem();
+        String linha3 = "PEDIDO: " + etq.getPedido();
+        String linha4 = "DATA: " + etq.getData().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yy"))
+                + "QTD:" + etq.getQtd();
 
-        // Monta ZPL
         StringBuilder zpl = new StringBuilder();
-        zpl.append("^XA\n"); // início da etiqueta
 
-        // QR Code à direita
-        zpl.append(String.format("^FO520,%d^BQN,2,5^FDLA,%s^FS\n", y, conteudo));
+        zpl.append("^XA");
+        zpl.append("^PW812");
+        zpl.append("^LL406");
 
-        // Texto à esquerda
-        int yText = y + 30;  // desce um pouco o bloco visual
-        for (String linha : textoVisual.split("\n")) {
-            zpl.append(String.format("^FO10,%d^A0N,30,30^FD%s^FS\n", yText, linha));
-            yText += 35;
-        }
+        // ===== TEXTO CENTRALIZADO =====
+        zpl.append("^FO0,20^FB812,1,0,C,0^A0N,32,32^FD" + linha1 + "\\&^FS");
+        zpl.append("^FO0,60^FB812,1,0,C,0^A0N,32,32^FD" + linha2 + "\\&^FS");
+        zpl.append("^FO0,100^FB812,1,0,C,0^A0N,32,32^FD" + linha3 + "\\&^FS");
+        zpl.append("^FO0,140^FB812,1,0,C,0^A0N,32,32^FD" + linha4 + "\\&^FS");
 
-        zpl.append("^XZ"); // fim da etiqueta
 
+        zpl.append("^FO0,210");
+        zpl.append("^BY2.5,3,120");
+        zpl.append("^BCN,120,Y,N,N");
+        zpl.append("^FD" + codigo + "^FS");
+        zpl.append("^XZ");
         return zpl.toString();
     }
 
-    /**
-     * Salva a etiqueta em arquivo ZPL
-     * @param etq     EtiquetaMatrizEntity
-     * @param caminho Caminho do arquivo (.zpl)
-     * @throws IOException
-     */
     public static void salvarZplArquivo(EtiquetaMatrizEntity etq, String caminho) throws IOException {
         String zpl = gerarZebraZpl(etq);
         Files.writeString(Path.of(caminho), zpl);

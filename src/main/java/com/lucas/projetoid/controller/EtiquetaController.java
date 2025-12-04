@@ -33,7 +33,6 @@ public class EtiquetaController {
     }
 
     // ------------------- HOME -------------------
-
     @GetMapping("/")
     public String home(Model model,
                        @RequestParam(defaultValue = "0") int page,
@@ -42,7 +41,7 @@ public class EtiquetaController {
         Pageable pageable = PageRequest.of(page, 10, Sort.by("id").descending());
         Page<EtiquetaMatrizEntity> opsPage = etiquetaMatrizRepository.findAll(pageable);
 
-        model.addAttribute("opsPage", opsPage);
+        model.addAttribute("ops", opsPage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", opsPage.getTotalPages());
 
@@ -62,7 +61,7 @@ public class EtiquetaController {
                 ? "Nenhuma OP nova para importar."
                 : importadas.size() + " OP(s) importada(s) com sucesso!";
 
-        redirectAttributes.addAttribute("mensagem", mensagem);
+        redirectAttributes.addFlashAttribute("mensagem", mensagem);
         return "redirect:/";
     }
 
@@ -83,46 +82,51 @@ public class EtiquetaController {
         }
 
         model.addAttribute("pedido", pedido);
-        model.addAttribute("ops", lista);
+        model.addAttribute("ops", lista); // lista enviada para gerar etiquetas selecionadas
         return "gerar-etiqueta-lista";
     }
 
     // ------------------- GERAR ETIQUETAS ZPL -------------------
     @PostMapping("/gerar-etiqueta/gerar")
-    public String gerarEtiquetasPedido(@RequestParam("pedido") String pedido,
+    public String gerarEtiquetasPedido(@RequestParam(value = "ids", required = false) List<Integer> ids,
                                        RedirectAttributes redirectAttributes) {
 
-        List<EtiquetaMatrizEntity> lista = etiquetaMatrizRepository.findByPedido(pedido);
-
-        if (lista.isEmpty()) {
-            redirectAttributes.addAttribute("mensagem", "Nenhuma OP encontrada para gerar etiquetas.");
-            return "redirect:/";
+        if (ids == null || ids.isEmpty()) {
+            redirectAttributes.addFlashAttribute("mensagem", "Nenhum item selecionado para gerar etiqueta.");
+            return "redirect:/gerar-etiqueta";
         }
 
         int geradas = 0;
-        for (EtiquetaMatrizEntity etq : lista) {
-            try {
-                String caminho = "C:/etiquetas/" + etq.getCodigoEtiqueta() + ".zpl";
-                etiquetaService.gerarZplEtiqueta(etq, caminho);
-                geradas++;
-            } catch (Exception e) {
 
-                System.out.println(e.getMessage());
-            }
+        for (Integer id : ids) {
+            etiquetaMatrizRepository.findById(id).ifPresent(etq -> {
+                try {
+                    String caminho = "C:/etiquetas/" + etq.getCodigoEtiqueta() + ".zpl";
+                    etiquetaService.gerarZplEtiqueta(etq, caminho);
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
+            });
+            geradas++;
         }
 
-        String msg = geradas + " etiqueta(s) gerada(s) em ZPL para o pedido " + pedido;
-        redirectAttributes.addAttribute("mensagem", msg);
+        redirectAttributes.addFlashAttribute("mensagem", geradas + " etiqueta(s) gerada(s) com sucesso!");
         return "redirect:/";
     }
 
     // ------------------- ETIQUETAS JÁ GERADAS (Status = True) -------------------
     @GetMapping("/etiquetas/geradas")
-    public String listarEtiquetasGeradas(Model model) {
-        List<EtiquetaMatrizEntity> geradas = etiquetaMatrizRepository.findByStatus(true);
-        model.addAttribute("opsGeradas", geradas);
-        return "etiquetas-geradas"; // HTML que você cria para exibir
-    }
+    public String listarEtiquetasGeradas(Model model,
+                                         @RequestParam(defaultValue = "0") int page) {
 
+        Pageable pageable = PageRequest.of(page, 10, Sort.by("id").descending());
+        Page<EtiquetaMatrizEntity> geradas = etiquetaMatrizRepository.findByStatus(true, pageable);
+
+        model.addAttribute("opsGeradas", geradas);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", geradas.getTotalPages());
+
+        return "etiquetas-geradas";
+    }
 
 }

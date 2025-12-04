@@ -44,7 +44,8 @@ public class OpProtheusRepository {
         
         FROM SC2010 as SC2
         INNER JOIN SC5010 SC5 ON SC2.C2_PEDIDO = SC5.C5_NUM
-        WHERE SC2.D_E_L_E_T_ = '' AND SC5.D_E_L_E_T_ = ''
+        WHERE SC2.C2_PRODUTO LIKE '%100.%'
+        AND SC2.D_E_L_E_T_ = '' AND SC5.D_E_L_E_T_ = ''
         AND SC2.R_E_C_N_O_ > CAST(? AS BIGINT)
         AND SC2.C2_DATPRI >= '20251101'
         ORDER BY SC2.R_E_C_N_O_ ASC

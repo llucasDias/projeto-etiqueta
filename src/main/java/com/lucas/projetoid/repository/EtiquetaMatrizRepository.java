@@ -1,6 +1,8 @@
 package com.lucas.projetoid.repository;
 
 import com.lucas.projetoid.model.EtiquetaMatrizEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -36,7 +38,7 @@ public interface EtiquetaMatrizRepository  extends JpaRepository<EtiquetaMatrizE
      List<EtiquetaMatrizEntity> findByPedido(String pedido);
 
      /* Listar etiquetas já geradas com status = true */
-     List<EtiquetaMatrizEntity> findByStatus(boolean status);
+     Page<EtiquetaMatrizEntity> findByStatus(boolean status, Pageable pageable);
 
      /* Buscar pelo código da etiqueta */
      Optional<EtiquetaMatrizEntity> findByCodigoEtiqueta(String codigoEtiqueta);

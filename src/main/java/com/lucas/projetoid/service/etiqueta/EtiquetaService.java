@@ -6,6 +6,14 @@ import com.lucas.projetoid.repository.EtiquetaMatrizRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+
 import java.time.format.DateTimeFormatter;
 
 /**
@@ -86,4 +94,28 @@ public class EtiquetaService {
         CodigoDeBarra.salvarZplArquivo(etq, caminho);
         atualizarStatus(etq.getCheckid());
     }
+
+    public byte[] gerarZipEtiquetas(List<EtiquetaMatrizEntity> lista) throws Exception {
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ZipOutputStream zip = new ZipOutputStream(baos);
+
+        for (EtiquetaMatrizEntity etq : lista) {
+
+            String nomeArquivo = etq.getCodigoEtiqueta() + ".zpl"; // mantém seu padrão
+
+            zip.putNextEntry(new ZipEntry(nomeArquivo));
+            String zpl = CodigoDeBarra.gerarZebraZpl(etq);
+            zip.write(zpl.getBytes(StandardCharsets.UTF_8));
+            zip.closeEntry();
+
+            atualizarStatus(etq.getCheckid());
+        }
+
+        zip.close();
+        return baos.toByteArray(); // ← será o arquivo ZIP enviado ao usuário
+    }
+
+
+
 }

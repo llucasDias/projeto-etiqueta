@@ -15,7 +15,6 @@
 
     <div class="actions-card">
         <h2>Filtros e Ações</h2>
-
         <div class="actions-grid">
             <a href="/" class="btn primary">Voltar</a>
             <a href="/gerar-etiqueta" class="btn secondary" target="_blank">Gerar Novas Etiquetas</a>
@@ -38,19 +37,37 @@
             </thead>
 
             <tbody>
-            <tr th:each="op : ${opsGeradas}">
+            <tr th:each="op : ${opsGeradasPage.content}">
                 <td th:text="${op.id}"></td>
                 <td th:text="${op.op}"></td>
                 <td th:text="${op.pedido}"></td>
                 <td th:text="${op.item}"></td>
                 <td th:text="${op.qtd}"></td>
-
                 <td>
                     <span class="badge done">Gerada ✔</span>
                 </td>
             </tr>
             </tbody>
         </table>
+
+        <!-- Paginação -->
+        <div class="pagination">
+            <a th:if="${opsGeradasPage.number > 0}"
+               th:href="@{/etiquetas/geradas(page=${opsGeradasPage.number - 1})}"
+               class="page-btn">&laquo; Anterior</a>
+
+            <span th:each="i : ${#numbers.sequence(0, opsGeradasPage.totalPages - 1)}">
+                <a th:href="@{/etiquetas/geradas(page=${i})}"
+                   th:text="${i + 1}"
+                   th:classappend="${i == opsGeradasPage.number} ? 'page-info' : ''"
+                   class="page-btn"></a>
+            </span>
+
+            <a th:if="${opsGeradasPage.number + 1 < opsGeradasPage.totalPages}"
+               th:href="@{/etiquetas/geradas(page=${opsGeradasPage.number + 1})}"
+               class="page-btn">Próximo &raquo;</a>
+        </div>
+
     </div>
 
 </div>

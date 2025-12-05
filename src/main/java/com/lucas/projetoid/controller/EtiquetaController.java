@@ -1,5 +1,6 @@
 package com.lucas.projetoid.controller;
 
+import com.lucas.projetoid.barcode.CodigoDeBarra;
 import com.lucas.projetoid.model.EtiquetaMatrizEntity;
 import com.lucas.projetoid.repository.EtiquetaMatrizRepository;
 import com.lucas.projetoid.service.importacao.SalvarOrdem;
@@ -8,10 +9,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import java.nio.charset.StandardCharsets;
 
 import java.util.List;
 
@@ -73,45 +77,60 @@ public class EtiquetaController {
 
     // ------------------- LISTAR OPs POR PEDIDO -------------------
     @PostMapping("/gerar-etiqueta/listar")
-    public String listarPorPedido(@RequestParam("pedido") String pedido, Model model) {
+    public String listarPorPedido(@RequestParam("pedido") String pedido, Model model, RedirectAttributes redirectAttributes) {
         List<EtiquetaMatrizEntity> lista = etiquetaMatrizRepository.findByPedido(pedido);
 
         if (lista.isEmpty()) {
-            model.addAttribute("erro", "Nenhuma OP encontrada para o pedido: " + pedido);
-            return "gerar-etiqueta";
+            redirectAttributes.addFlashAttribute("erro", "Nenhuma OP encontrada para o pedido: " + pedido);
+            return "redirect:/gerar-etiqueta";
         }
 
         model.addAttribute("pedido", pedido);
-        model.addAttribute("ops", lista); // lista enviada para gerar etiquetas selecionadas
+        model.addAttribute("ops", lista);
         return "gerar-etiqueta-lista";
     }
 
     // ------------------- GERAR ETIQUETAS ZPL -------------------
     @PostMapping("/gerar-etiqueta/gerar")
-    public String gerarEtiquetasPedido(@RequestParam(value = "ids", required = false) List<Integer> ids,
-                                       RedirectAttributes redirectAttributes) {
+    public ResponseEntity<byte[]> gerarEtiquetasPedido(@RequestParam(value = "ids", required = false) List<Integer> ids) throws Exception {
 
         if (ids == null || ids.isEmpty()) {
-            redirectAttributes.addFlashAttribute("mensagem", "Nenhum item selecionado para gerar etiqueta.");
-            return "redirect:/gerar-etiqueta";
+            return ResponseEntity.badRequest().build();
         }
 
-        int geradas = 0;
+        List<EtiquetaMatrizEntity> lista = etiquetaMatrizRepository.findAllById(ids);
 
-        for (Integer id : ids) {
-            etiquetaMatrizRepository.findById(id).ifPresent(etq -> {
-                try {
-                    String caminho = "C:/etiquetas/" + etq.getCodigoEtiqueta() + ".zpl";
-                    etiquetaService.gerarZplEtiqueta(etq, caminho);
-                } catch (Exception e) {
-                    System.out.println(e.getMessage());
-                }
-            });
-            geradas++;
+        // SE SÓ TIVER 1 ETIQUETA -> RETORNA .ZPL DIRETO (usa CodigoDeBarra)
+        if (lista.size() == 1) {
+            EtiquetaMatrizEntity etq = lista.get(0);
+
+            String zpl = CodigoDeBarra.gerarZebraZpl(etq);
+
+            etiquetaService.atualizarStatus(etq.getCheckid());
+
+            byte[] zplBytes = zpl.getBytes(StandardCharsets.UTF_8);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + etq.getCodigoEtiqueta() + ".zpl");
+            headers.add(HttpHeaders.CONTENT_TYPE, "text/plain");
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .contentLength(zplBytes.length)
+                    .body(zplBytes);
         }
 
-        redirectAttributes.addFlashAttribute("mensagem", geradas + " etiqueta(s) gerada(s) com sucesso!");
-        return "redirect:/";
+
+        byte[] zipFile = etiquetaService.gerarZipEtiquetas(lista);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=etiquetas.zip");
+        headers.add(HttpHeaders.CONTENT_TYPE, "application/zip");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentLength(zipFile.length)
+                .body(zipFile);
     }
 
     // ------------------- ETIQUETAS JÁ GERADAS (Status = True) -------------------
@@ -122,10 +141,7 @@ public class EtiquetaController {
         Pageable pageable = PageRequest.of(page, 10, Sort.by("id").descending());
         Page<EtiquetaMatrizEntity> geradas = etiquetaMatrizRepository.findByStatus(true, pageable);
 
-        model.addAttribute("opsGeradas", geradas);
-        model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", geradas.getTotalPages());
-
+        model.addAttribute("opsGeradasPage", geradas); // envia o Page completo
         return "etiquetas-geradas";
     }
 

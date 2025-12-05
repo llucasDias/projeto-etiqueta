@@ -18,8 +18,8 @@ public class CodigoDeBarra {
 
     public static String gerarZebraZpl(EtiquetaMatrizEntity etq) {
 
-        int width  = 812; // etiqueta 104mm  → ZEBRA REAL
-        int height = 406; // etiqueta 50,8mm → OK Labelary
+        int width  = 812; // etiqueta 104mm
+        int height = 406; // etiqueta 50,8mm
 
         String codigo = String.format("%s-%s-%s-%s-%s",
                 etq.getOp(), etq.getPedido(), etq.getItem(),

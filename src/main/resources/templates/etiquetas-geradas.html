@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Etiquetas Já Geradas</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<div class="navbar">
+    <h1>Etiquetas Impressas</h1>
+</div>
+
+<div class="container">
+
+    <div class="actions-card">
+        <h2>Filtros e Ações</h2>
+
+        <div class="actions-grid">
+            <a href="/" class="btn primary">Voltar</a>
+            <a href="/gerar-etiqueta" class="btn secondary" target="_blank">Gerar Novas Etiquetas</a>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <h2>Lista de Etiquetas já Impressas</h2>
+
+        <table class="styled-table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>OP</th>
+                <th>Pedido</th>
+                <th>Item</th>
+                <th>Quantidade</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr th:each="op : ${opsGeradas}">
+                <td th:text="${op.id}"></td>
+                <td th:text="${op.op}"></td>
+                <td th:text="${op.pedido}"></td>
+                <td th:text="${op.item}"></td>
+                <td th:text="${op.qtd}"></td>
+
+                <td>
+                    <span class="badge done">Gerada ✔</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>

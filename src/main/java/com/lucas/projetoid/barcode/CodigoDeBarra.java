@@ -46,7 +46,7 @@ public class CodigoDeBarra {
 
 
         zpl.append("^FO0,210");
-        zpl.append("^BY2.5,3,120");
+        zpl.append("^BY2,3,120");
         zpl.append("^BCN,120,Y,N,N");
         zpl.append("^FD" + codigo + "^FS");
         zpl.append("^XZ");

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>OPs do Pedido</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<div class="container">
+    <h2>OPs do Pedido: <span th:text="${pedido}"></span></h2>
+
+    <form th:action="@{/gerar-etiqueta/gerar}" method="post">
+        <div class="table-card">
+            <table class="styled-table">
+                <thead>
+                <tr>
+                    <th>Sel.</th>
+                    <th>ID</th>
+                    <th>OP</th>
+                    <th>Item</th>
+                    <th>Quantidade</th>
+                    <th>Status</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="op : ${ops}">
+                    <td><input type="checkbox" name="ids" th:value="${op.id}" /></td>
+                    <td th:text="${op.id}"></td>
+                    <td th:text="${op.op}"></td>
+                    <td th:text="${op.item}"></td>
+                    <td th:text="${op.qtd}"></td>
+                    <td>
+                        <span th:if="${!op.status}" class="badge pending">Pendente</span>
+                        <span th:if="${op.status}" class="badge done">Gerada</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <button type="submit" class="btn primary" style="margin-top:12px;">Gerar Etiquetas Selecionadas</button>
+        <a href="/" class="btn secondary" style="margin-top:12px;">Voltar</a>
+    </form>
+</div>
+
+</body>
+</html>

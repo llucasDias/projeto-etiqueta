@@ -49,8 +49,7 @@ public class CodigoDeBarra {
         zpl.append("^FO30,203^A0N,32,32^FD" + linha3 + "^FS");
         zpl.append("^FO30,243^A0N,32,32^FD" + linha4 + "^FS");
 
-
-        zpl.append("^FO500,110");          // Centralizado verticalmente em relação ao bloco de texto
+        zpl.append("^FO500,30");// QR Code subindo para alinhar com o topo do texto
         zpl.append("^BQN,2,8");
         zpl.append("^FDLA," + codigo + "^FS");
 

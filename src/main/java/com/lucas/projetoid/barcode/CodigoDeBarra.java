@@ -18,19 +18,24 @@ public class CodigoDeBarra {
 
     public static String gerarZebraZpl(EtiquetaMatrizEntity etq) {
 
-        int width  = 812; // etiqueta 104mm
-        int height = 406; // etiqueta 50,8mm
+        int width  = 812; // largura da etiqueta
+        int height = 406; // altura da etiqueta
 
-        String codigo = String.format("%s-%s-%s-%s-%s",
-                etq.getOp(), etq.getPedido(), etq.getItem(),
-                etq.getCliente(), etq.getQtd()
+        // Dados embutidos no QR Code com TAB (Excel separa em colunas)
+        String codigo = String.join("\t",
+                etq.getOp(),
+                etq.getPedido(),
+                etq.getItem(),
+                etq.getCliente(),
+                etq.getQtd().toString()
         );
 
+        // Texto da etiqueta
         String linha1 = "CLIENTE: " + etq.getCliente();
         String linha2 = "OP: " + etq.getOp() + "   ITEM: " + etq.getItem();
         String linha3 = "PEDIDO: " + etq.getPedido();
         String linha4 = "DATA: " + etq.getData().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yy"))
-                + "QTD:" + etq.getQtd();
+                + " QTD:" + etq.getQtd();
 
         StringBuilder zpl = new StringBuilder();
 
@@ -38,17 +43,17 @@ public class CodigoDeBarra {
         zpl.append("^PW812");
         zpl.append("^LL406");
 
-        // ===== TEXTO CENTRALIZADO =====
-        zpl.append("^FO0,20^FB812,1,0,C,0^A0N,32,32^FD" + linha1 + "\\&^FS");
-        zpl.append("^FO0,60^FB812,1,0,C,0^A0N,32,32^FD" + linha2 + "\\&^FS");
-        zpl.append("^FO0,100^FB812,1,0,C,0^A0N,32,32^FD" + linha3 + "\\&^FS");
-        zpl.append("^FO0,140^FB812,1,0,C,0^A0N,32,32^FD" + linha4 + "\\&^FS");
+
+        zpl.append("^FO30,123^A0N,32,32^FD" + linha1 + "^FS");
+        zpl.append("^FO30,163^A0N,32,32^FD" + linha2 + "^FS");
+        zpl.append("^FO30,203^A0N,32,32^FD" + linha3 + "^FS");
+        zpl.append("^FO30,243^A0N,32,32^FD" + linha4 + "^FS");
 
 
-        zpl.append("^FO0,210");
-        zpl.append("^BY2,3,120");
-        zpl.append("^BCN,120,Y,N,N");
-        zpl.append("^FD" + codigo + "^FS");
+        zpl.append("^FO500,110");          // Centralizado verticalmente em relação ao bloco de texto
+        zpl.append("^BQN,2,8");
+        zpl.append("^FDLA," + codigo + "^FS");
+
         zpl.append("^XZ");
         return zpl.toString();
     }

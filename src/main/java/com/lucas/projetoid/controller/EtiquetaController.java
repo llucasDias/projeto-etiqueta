@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.nio.charset.StandardCharsets;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Controller
@@ -42,8 +44,11 @@ public class EtiquetaController {
                        @RequestParam(defaultValue = "0") int page,
                        @RequestParam(required = false) String mensagem) {
 
+        LocalDateTime segundaFeira = LocalDateTime.of(2025, 12, 8, 0, 0);
         Pageable pageable = PageRequest.of(page, 10, Sort.by("id").descending());
-        Page<EtiquetaMatrizEntity> opsPage = etiquetaMatrizRepository.findAll(pageable);
+
+        Page<EtiquetaMatrizEntity> opsPage =
+                etiquetaMatrizRepository.findByDataAfter(segundaFeira, pageable);
 
         model.addAttribute("ops", opsPage.getContent());
         model.addAttribute("currentPage", page);
@@ -138,10 +143,13 @@ public class EtiquetaController {
     public String listarEtiquetasGeradas(Model model,
                                          @RequestParam(defaultValue = "0") int page) {
 
-        Pageable pageable = PageRequest.of(page, 10, Sort.by("id").descending());
-        Page<EtiquetaMatrizEntity> geradas = etiquetaMatrizRepository.findByStatus(true, pageable);
+        LocalDateTime segundaFeira = LocalDateTime.of(2025, 12, 8, 0, 0);;
 
-        model.addAttribute("opsGeradasPage", geradas); // envia o Page completo
+        Pageable pageable = PageRequest.of(page, 10, Sort.by("id").descending());
+        Page<EtiquetaMatrizEntity> geradas =
+                etiquetaMatrizRepository.findByStatusAndDataAfter(true, segundaFeira, pageable);
+
+        model.addAttribute("opsGeradasPage", geradas);
         return "etiquetas-geradas";
     }
 

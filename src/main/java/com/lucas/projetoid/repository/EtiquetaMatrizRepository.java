@@ -6,6 +6,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,7 +32,6 @@ public interface EtiquetaMatrizRepository  extends JpaRepository<EtiquetaMatrizE
      @Query("SELECT MAX(s.checkid) FROM EtiquetaMatrizEntity s")
      Integer findMaxCheckIdAsNumber();
 
-
      /* Buscar etiqueta pelo checkId (RECNO do Protheus) */
      Optional<EtiquetaMatrizEntity> findByCheckid(Integer checkid);
 
@@ -42,5 +43,13 @@ public interface EtiquetaMatrizRepository  extends JpaRepository<EtiquetaMatrizE
 
      /* Buscar pelo código da etiqueta */
      Optional<EtiquetaMatrizEntity> findByCodigoEtiqueta(String codigoEtiqueta);
+
+
+     /* Lista de etiquetas apos a data de corte */
+     Page<EtiquetaMatrizEntity> findByDataAfter(LocalDateTime data, Pageable pageable);
+
+     /* Etiquetas geradas a partir da data de corte*/
+     Page<EtiquetaMatrizEntity> findByStatusAndDataAfter(boolean status, LocalDateTime data, Pageable pageable);
+
 
 }
